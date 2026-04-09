@@ -40,10 +40,11 @@ export default function QuestionCommentInput({
         setIsSubmitting(true);
 
         try {
-            await api.post(
-                `/api-v1/praktikan/soal-comment/${praktikanId}/${tipeSoal}/${resolvedQuestionId}`,
-                { comment: trimmedComment }
-            );
+            await api.post("/api/soal/comments", {
+                soalType: tipeSoal === "tm" ? "mandiri" : tipeSoal,
+                soalId: resolvedQuestionId,
+                comment: trimmedComment,
+            });
 
             setComment("");
             setIsVisible(false);

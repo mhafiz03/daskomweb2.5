@@ -84,12 +84,12 @@ export default function ModalPraktikanAnswers({ isOpen, onClose, modulId, modulT
             }
 
             const [tp, ta, jurnal, mandiri, tk, fitb] = await Promise.all([
-                safeFetch(`/api-v1/jawaban-tp/${modulId}`),
-                safeFetch(`/api-v1/jawaban-ta/${modulId}`),
-                safeFetch(`/api-v1/jawaban-jurnal/${modulId}`),
-                safeFetch(`/api-v1/jawaban-tm/${modulId}`),
-                safeFetch(`/api-v1/jawaban-tk/${modulId}`),
-                safeFetch(`/api-v1/jawaban-fitb/${modulId}`),
+                safeFetch(`/api/jawaban/tp/${modulId}`),
+                safeFetch(`/api/jawaban/ta/${modulId}`),
+                safeFetch(`/api/jawaban/jurnal/${modulId}`),
+                safeFetch(`/api/jawaban/mandiri/${modulId}`),
+                safeFetch(`/api/jawaban/tk/${modulId}`),
+                safeFetch(`/api/jawaban/fitb/${modulId}`),
             ]);
 
             return {

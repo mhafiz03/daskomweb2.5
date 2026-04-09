@@ -40,7 +40,7 @@ export default function FormLihatTp() {
     const jawabanTpMutation = useMutation({
         mutationFn: async ({ nim: praktikanNim, modulId }) => {
             try {
-                const { data } = await api.get(`/api-v1/jawaban-tp/${praktikanNim}/${modulId}`);
+                const { data } = await api.get(`/api/jawaban/tp/by-nim/${praktikanNim}/${modulId}`);
                 if (!data?.success) {
                     throw new Error(data?.message ?? "Gagal menampilkan jawaban TP");
                 }

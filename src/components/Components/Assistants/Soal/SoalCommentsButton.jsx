@@ -47,13 +47,14 @@ export default function SoalCommentsButton({ kategoriSoal, modulId, soalId, vari
                 return [];
             }
 
-            const { data } = await api.get(`/api-v1/asisten/soal-comment/${commentType}/${modulId}`);
+            const { data } = await api.get("/api/soal/comments", {
+                params: {
+                    soalType: commentType,
+                    modulId,
+                },
+            });
 
-            if (data?.success === false) {
-                throw new Error(data?.message ?? "Gagal memuat komentar soal.");
-            }
-
-            return Array.isArray(data?.data) ? data.data : [];
+            return Array.isArray(data) ? data : [];
         },
         enabled: isCommentSupported,
         staleTime: 60 * 1000,

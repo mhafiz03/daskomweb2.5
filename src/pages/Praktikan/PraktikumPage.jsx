@@ -33,31 +33,31 @@ const INITIAL_COMPLETED_STATE = TASK_NAMES.reduce((accumulator, key) => {
 
 const TASK_CONFIG = {
     TesAwal: {
-        questionEndpoint: (modulId) => `/api-v1/soal-ta/${modulId}`,
-        submitEndpoint: "/api-v1/jawaban-ta",
+        questionEndpoint: "/api/soal/ta",
+        submitEndpoint: "/api/jawaban/ta",
         variant: "multiple-choice",
         commentType: "ta",
     },
     Jurnal: {
-        questionEndpoint: (modulId) => `/api-v1/soal-jurnal/${modulId}`,
-        submitEndpoint: "/api-v1/jawaban-jurnal",
+        questionEndpoint: "/api/soal/jurnal",
+        submitEndpoint: "/api/jawaban/jurnal",
         variant: "essay",
         commentType: "jurnal",
         fitb: {
-            questionEndpoint: (modulId) => `/api-v1/soal-fitb/${modulId}`,
-            submitEndpoint: "/api-v1/jawaban-fitb",
+            questionEndpoint: "/api/soal/fitb",
+            submitEndpoint: "/api/jawaban/fitb",
         },
     },
     Mandiri: {
-        questionEndpoint: (modulId) => `/api-v1/soal-tm/${modulId}`,
+        questionEndpoint: "/api/soal/mandiri",
         answerEndpoint: null,
-        submitEndpoint: "/api-v1/jawaban-tm",
+        submitEndpoint: "/api/jawaban/mandiri",
         variant: "essay",
         commentType: "mandiri",
     },
     TesKeterampilan: {
-        questionEndpoint: (modulId) => `/api-v1/soal-tk/${modulId}`,
-        submitEndpoint: "/api-v1/jawaban-tk",
+        questionEndpoint: "/api/soal/tk",
+        submitEndpoint: "/api/jawaban/tk",
         variant: "multiple-choice",
         commentType: "tk",
     },
@@ -320,7 +320,7 @@ export default function PraktikumPage() {
         if (!autosaveDebouncersRef.current[tipeSoal]) {
             autosaveDebouncersRef.current[tipeSoal] = debounce(async (payload) => {
                 try {
-                    await api.post("/api-v1/praktikan/autosave", payload);
+                    await api.post("/api/autosave", payload);
                 } catch (error) {
                     console.warn(`[Autosave] Failed to save ${tipeSoal} snapshot`, error);
                 }
@@ -364,8 +364,8 @@ export default function PraktikumPage() {
             try {
                 const endpoint =
                     phase === "ta"
-                        ? `/api-v1/nilai-ta/${praktikanId}/${activeModulId}`
-                        : `/api-v1/nilai-tk/${praktikanId}/${activeModulId}`;
+                        ? `/api/nilai-ta/${praktikanId}/${activeModulId}`
+                        : `/api/nilai-tk/${praktikanId}/${activeModulId}`;
 
                 const { data } = await api.get(endpoint);
 
@@ -416,36 +416,9 @@ export default function PraktikumPage() {
         }
     }, [activeComponent]);
 
-    const localStorageKey = useMemo(() => {
-        if (!activeModulId) return null;
-        return `praktikum:completed:${activeModulId}`;
+    useEffect(() => {
+        setCompletedCategories({ ...INITIAL_COMPLETED_STATE });
     }, [activeModulId]);
-
-    useEffect(() => {
-        if (!localStorageKey) {
-            setCompletedCategories({ ...INITIAL_COMPLETED_STATE });
-            return;
-        }
-
-        try {
-            const stored = localStorage.getItem(localStorageKey);
-            if (stored) {
-                const parsed = JSON.parse(stored);
-                setCompletedCategories({ ...INITIAL_COMPLETED_STATE, ...parsed });
-            } else {
-                setCompletedCategories({ ...INITIAL_COMPLETED_STATE });
-            }
-        } catch (error) {
-            console.error("Failed to restore completed categories", error);
-            setCompletedCategories({ ...INITIAL_COMPLETED_STATE });
-        }
-    }, [localStorageKey]);
-
-    useEffect(() => {
-        if (localStorageKey) {
-            localStorage.setItem(localStorageKey, JSON.stringify(completedCategories));
-        }
-    }, [completedCategories, localStorageKey]);
 
     const fetchStoredQuestionIds = useCallback(
         async (autosaveType, modulId) => {
@@ -454,9 +427,8 @@ export default function PraktikumPage() {
             }
 
             try {
-                const { data } = await api.get("/api-v1/praktikan/autosave/questions", {
+                const { data } = await api.get("/api/autosave/questions", {
                     params: {
-                        praktikan_id: praktikanId,
                         modul_id: modulId,
                         tipe_soal: autosaveType,
                     },
@@ -486,8 +458,7 @@ export default function PraktikumPage() {
             if (!Array.isArray(questionIds) || questionIds.length === 0) return;
 
             try {
-                await api.post("/api-v1/praktikan/autosave/questions", {
-                    praktikan_id: praktikanId,
+                await api.post("/api/autosave/questions", {
                     modul_id: modulId,
                     tipe_soal: autosaveType,
                     question_ids: questionIds,
@@ -527,17 +498,20 @@ export default function PraktikumPage() {
                     ? { params: { question_ids: storedQuestionIds } }
                     : undefined;
 
-                const questionResponse = await api.get(
-                    config.questionEndpoint(modulId),
-                    questionConfig
-                );
+                const questionResponse = await api.get(config.questionEndpoint, {
+                    ...(questionConfig ?? {}),
+                    params: {
+                        ...(questionConfig?.params ?? {}),
+                        modulId,
+                    },
+                });
 
                 const rawQuestions = extractQuestions(questionResponse);
                 let normalizedQuestions = [];
 
                 if (taskKey === "Jurnal" && config.fitb) {
                     const fitbQuestionResponse = await api
-                        .get(config.fitb.questionEndpoint(modulId))
+                        .get(config.fitb.questionEndpoint, { params: { modulId } })
                         .catch(() => ({ data: [] }));
 
                     const rawFitbQuestions = extractQuestions(fitbQuestionResponse);
@@ -578,9 +552,8 @@ export default function PraktikumPage() {
 
                 if (autosaveType && praktikanId) {
                     try {
-                        const { data: autosaveResponse } = await api.get("/api-v1/praktikan/autosave", {
+                        const { data: autosaveResponse } = await api.get("/api/autosave", {
                             params: {
-                                praktikan_id: praktikanId,
                                 modul_id: modulId,
                                 tipe_soal: autosaveType,
                             },
@@ -732,8 +705,7 @@ export default function PraktikumPage() {
 
         setIsSavingProgress(true);
         try {
-            await api.post("/api-v1/praktikan/autosave", {
-                praktikan_id: praktikanId,
+            await api.post("/api/autosave", {
                 modul_id: activeModulId,
                 tipe_soal: autosaveType,
                 jawaban: jawabanEntries,
@@ -750,7 +722,7 @@ export default function PraktikumPage() {
     const handleRefreshStatus = useCallback(async () => {
         setIsRefreshingStatus(true);
         try {
-            const { data } = await api.get("/api-v1/praktikum/check-praktikum");
+            const { data } = await api.get("/api/praktikum/check-praktikum");
 
             if (data?.dk_required) {
                 toast("DK belum dipilih. Silakan pilih DK terlebih dahulu.", { icon: "⚠️" });
@@ -857,17 +829,6 @@ export default function PraktikumPage() {
         [activeModulId, fetchTaskData, clearTaskProgress]
     );
 
-    const persistAnswersToLocalStorage = useCallback((taskName, taskAnswers, modulId) => {
-        if (!modulId) return;
-
-        try {
-            const key = `praktikum:answers:${taskName}:${modulId}`;
-            localStorage.setItem(key, JSON.stringify(taskAnswers));
-        } catch (error) {
-            console.warn("Failed to persist answers", error);
-        }
-    }, []);
-
     const handleTaskSubmit = useCallback(
         async (taskName, taskAnswers = answers, silent = false) => {
             if (!taskName || !TASK_NAMES.includes(taskName)) return;
@@ -950,9 +911,8 @@ export default function PraktikumPage() {
                 const autosaveType = AUTOSAVE_TYPE_MAP[taskName];
                 if (autosaveType) {
                     try {
-                        await api.delete("/api-v1/praktikan/autosave", {
+                        await api.delete("/api/autosave", {
                             data: {
-                                praktikan_id: praktikanId,
                                 modul_id: activeModulId,
                                 tipe_soal: autosaveType,
                             },
@@ -962,7 +922,6 @@ export default function PraktikumPage() {
                     }
                 }
 
-                persistAnswersToLocalStorage(taskName, taskAnswers, activeModulId);
                 setCompletedCategories((prev) => ({ ...prev, [taskName]: true }));
                 clearTaskProgress();
 
@@ -988,7 +947,7 @@ export default function PraktikumPage() {
                 setIsSubmittingTask(false);
             }
         },
-        [activeModulId, answers, clearTaskProgress, persistAnswersToLocalStorage, praktikanId, questions, setScoreModalState]
+        [activeModulId, answers, clearTaskProgress, praktikanId, questions, setScoreModalState]
     );
 
     const handleReviewTask = useCallback(
@@ -1269,7 +1228,7 @@ export default function PraktikumPage() {
 
         const interval = setInterval(async () => {
             try {
-                await api.get("/api-v1/praktikum/check-praktikum");
+                await api.get("/api/praktikum/check-praktikum");
             } catch {
                 // silently ignore polling errors
             }

@@ -260,6 +260,34 @@ export const tempSoaljurnals = sqliteTable("temp_soaljurnals", {
     updatedAt: integer("updated_at", { mode: "timestamp_ms" }).default(defaultNow).$onUpdate(() => new Date()).notNull(),
 });
 
+export const autosaveSnapshots = sqliteTable(
+    "autosave_snapshots",
+    {
+        id: text("id").primaryKey().$defaultFn(uuid),
+        praktikanId: text("praktikan_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+        modulId: text("modul_id").notNull().references(() => moduls.id, { onDelete: "cascade" }),
+        tipeSoal: text("tipe_soal").notNull(),
+        jawaban: text("jawaban").notNull().default("{}"),
+        createdAt: integer("created_at", { mode: "timestamp_ms" }).default(defaultNow).notNull(),
+        updatedAt: integer("updated_at", { mode: "timestamp_ms" }).default(defaultNow).$onUpdate(() => new Date()).notNull(),
+    },
+    (t) => ({ uniq: unique("autosave_snapshots_praktikan_modul_tipe_unique").on(t.praktikanId, t.modulId, t.tipeSoal) }),
+);
+
+export const autosaveQuestionSnapshots = sqliteTable(
+    "autosave_question_snapshots",
+    {
+        id: text("id").primaryKey().$defaultFn(uuid),
+        praktikanId: text("praktikan_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+        modulId: text("modul_id").notNull().references(() => moduls.id, { onDelete: "cascade" }),
+        tipeSoal: text("tipe_soal").notNull(),
+        questionIds: text("question_ids").notNull().default("[]"),
+        createdAt: integer("created_at", { mode: "timestamp_ms" }).default(defaultNow).notNull(),
+        updatedAt: integer("updated_at", { mode: "timestamp_ms" }).default(defaultNow).$onUpdate(() => new Date()).notNull(),
+    },
+    (t) => ({ uniq: unique("autosave_question_snapshots_praktikan_modul_tipe_unique").on(t.praktikanId, t.modulId, t.tipeSoal) }),
+);
+
 // TP submission tracking (whether praktikan has submitted TP for a modul)
 export const kumpulTps = sqliteTable("kumpul_tps", {
     id: text("id").primaryKey().$defaultFn(uuid),

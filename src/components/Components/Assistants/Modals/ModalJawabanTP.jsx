@@ -8,7 +8,7 @@ const fetchJawabanTp = async ({ nim, modulId }) => {
         return null;
     }
 
-    const { data } = await api.get(`/api-v1/jawaban-tp/${nim}/${modulId}`);
+    const { data } = await api.get(`/api/jawaban/tp/by-nim/${nim}/${modulId}`);
 
     if (data?.success === false) {
         throw new Error(data?.message ?? "Gagal memuat jawaban TP");

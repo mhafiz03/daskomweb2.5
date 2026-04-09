@@ -89,7 +89,7 @@ export default function TablePlottingan() {
 
     const deleteKelasMutation = useMutation({
         mutationFn: async (kelasId) => {
-            await api.delete(`/api-v1/kelas/${kelasId}`);
+            await api.delete(`/api/kelas/${kelasId}`);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: KELAS_QUERY_KEY });

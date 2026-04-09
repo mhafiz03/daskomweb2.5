@@ -81,6 +81,26 @@ const getPhaseIndex = (phaseKey) =>
 
 const PRAKTIKUM_PROGRESS_QUERY_KEY = "praktikum-progress";
 
+const normalizePraktikum = (item) => {
+    if (!item) return null;
+
+    return {
+        ...item,
+        kelas_id: item.kelas_id ?? item.kelasId ?? item.kelas?.id ?? null,
+        modul_id: item.modul_id ?? item.modulId ?? item.modul?.id ?? null,
+        pj_id: item.pj_id ?? item.pjId ?? item.pj?.id ?? null,
+        current_phase: item.current_phase ?? item.currentPhase ?? null,
+        phase_started_at: item.phase_started_at ?? item.phaseStartedAt ?? null,
+        phase_elapsed_seconds: item.phase_elapsed_seconds ?? item.phaseElapsedSeconds ?? 0,
+        started_at: item.started_at ?? item.startedAt ?? null,
+        ended_at: item.ended_at ?? item.endedAt ?? null,
+        report_notes: item.report_notes ?? item.reportNotes ?? "",
+        report_submitted_at: item.report_submitted_at ?? item.reportSubmittedAt ?? null,
+        updated_at: item.updated_at ?? item.updatedAt ?? null,
+        dk: item.dk ?? "DK1",
+    };
+};
+
 export default function ContentPraktikum() {
     const [selectedModul, setSelectedModul] = useState("");
     const [selectedKelas, setSelectedKelas] = useState("");
@@ -129,17 +149,11 @@ export default function ContentPraktikum() {
                 return [];
             }
 
-            const { data } = await api.get(`/api-v1/praktikum/${selectedKelas}`);
-
-            if (Array.isArray(data?.data)) {
-                return data.data;
-            }
-
-            if (Array.isArray(data?.praktikum)) {
-                return data.praktikum;
-            }
-
-            return [];
+            const { data } = await api.get("/api/praktikums");
+            const rows = Array.isArray(data) ? data : [];
+            return rows
+                .map(normalizePraktikum)
+                .filter((item) => String(item?.kelas_id) === String(selectedKelas));
         },
         enabled: Boolean(selectedKelas),
         onError: (error) => toast.error(getErrorMessage(error)),
@@ -238,8 +252,8 @@ export default function ContentPraktikum() {
     } = useQuery({
         queryKey: ["praktikum-all"],
         queryFn: async () => {
-            const { data } = await api.get('/api-v1/praktikum');
-            return Array.isArray(data?.data) ? data.data : [];
+            const { data } = await api.get("/api/praktikums");
+            return (Array.isArray(data) ? data : []).map(normalizePraktikum).filter(Boolean);
         },
         refetchInterval: isEchoConnected ? false : 5000, // Only poll as fallback when WebSocket is not connected
     });
@@ -264,16 +278,8 @@ export default function ContentPraktikum() {
                 return undefined;
             }
 
-            const { data } = await api.get(`/api-v1/praktikum/${selectedPraktikumId}/progress`);
-            if (data?.data) {
-                return data.data;
-            }
-
-            if (data?.progress) {
-                return data.progress;
-            }
-
-            return data ?? null;
+            const { data } = await api.get(`/api/praktikums/${selectedPraktikumId}/progress`);
+            return normalizePraktikum(data ?? null);
         },
         enabled: Boolean(selectedPraktikumId),
         refetchInterval: isProgressPolling && !isEchoConnected ? 10000 : false, // Only poll as fallback when WebSocket is not connected
@@ -552,13 +558,13 @@ export default function ContentPraktikum() {
                 throw new Error("Pilih DK sebelum memulai praktikum.");
             }
 
-            const { data } = await api.post("/api-v1/praktikum", {
-                kelas_id: Number(selectedKelas),
-                modul_id: Number(selectedModul),
+            const { data } = await api.post("/api/praktikums", {
+                kelasId: String(selectedKelas),
+                modulId: String(selectedModul),
                 dk: selectedDk,
             });
 
-            return data?.data ?? data?.praktikum ?? data;
+            return normalizePraktikum(data);
         },
         onSuccess: (praktikum) => {
             if (!praktikum) {
@@ -604,18 +610,43 @@ export default function ContentPraktikum() {
                 throw new Error("Data praktikum tidak ditemukan.");
             }
 
-            const payload = { action };
-
-            if (phase) {
-                payload.phase = phase;
+            if (action === "report") {
+                const { data } = await api.post(`/api/praktikums/${targetId}/report`, {
+                    notes: report_notes ?? "",
+                });
+                return { data: normalizePraktikum(data), message: "Status praktikum diperbarui." };
             }
 
-            if (typeof report_notes === "string") {
-                payload.report_notes = report_notes;
+            if (action === "next") {
+                const { data } = await api.post(`/api/praktikums/${targetId}/next-phase`, {
+                    phase,
+                });
+                return { data: normalizePraktikum(data), message: "Status praktikum diperbarui." };
             }
 
-            const { data } = await api.put(`/api-v1/praktikum/${targetId}`, payload);
-            return data;
+            if (action === "start") {
+                const { data } = await api.post(`/api/praktikums/${targetId}/start`, {
+                    phase,
+                });
+                return { data: normalizePraktikum(data), message: "Status praktikum diperbarui." };
+            }
+
+            if (action === "pause") {
+                const { data } = await api.post(`/api/praktikums/${targetId}/pause`);
+                return { data: normalizePraktikum(data), message: "Status praktikum diperbarui." };
+            }
+
+            if (action === "resume") {
+                const { data } = await api.post(`/api/praktikums/${targetId}/resume`);
+                return { data: normalizePraktikum(data), message: "Status praktikum diperbarui." };
+            }
+
+            if (action === "exit") {
+                const { data } = await api.post(`/api/praktikums/${targetId}/exit`);
+                return { data: normalizePraktikum(data), message: "Status praktikum diperbarui." };
+            }
+
+            throw new Error("Aksi praktikum tidak didukung.");
         },
         onMutate: async ({ action }) => {
             setPendingAction(action);

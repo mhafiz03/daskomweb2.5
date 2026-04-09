@@ -237,7 +237,7 @@ export default function ModalInputNilai({
                         }
 
                         const { data } = await api.get(
-                            `/api-v1/jawaban-tp/${nim}/${modul.id}`
+                            `/api/jawaban/tp/by-nim/${nim}/${modul.id}`
                         );
 
                         if (data?.success === false) {
@@ -274,7 +274,7 @@ export default function ModalInputNilai({
                         }
 
                         const { data } = await api.get(
-                            `/api-v1/jawaban-ta/praktikan/${praktikanId}/modul/${modul.id}`
+                            `/api/jawaban/ta/praktikan/${praktikanId}/modul/${modul.id}`
                         );
 
                         if (data?.success === false) {
@@ -311,7 +311,7 @@ export default function ModalInputNilai({
                         }
 
                         const { data } = await api.get(
-                            `/api-v1/jawaban-jurnal/praktikan/${praktikanId}/modul/${modul.id}`
+                            `/api/jawaban/jurnal/praktikan/${praktikanId}/modul/${modul.id}`
                         );
 
                         if (data?.success === false) {
@@ -348,7 +348,7 @@ export default function ModalInputNilai({
                         }
 
                         const { data } = await api.get(
-                            `/api-v1/jawaban-fitb/praktikan/${praktikanId}/modul/${modul.id}`
+                            `/api/jawaban/fitb/praktikan/${praktikanId}/modul/${modul.id}`
                         );
 
                         if (data?.success === false) {
@@ -391,7 +391,7 @@ export default function ModalInputNilai({
                         }
 
                         const { data } = await api.get(
-                            `/api-v1/jawaban-mandiri/praktikan/${praktikanId}/modul/${modul.id}`
+                            `/api/jawaban/mandiri/praktikan/${praktikanId}/modul/${modul.id}`
                         );
 
                         if (data?.success === false) {
@@ -428,7 +428,7 @@ export default function ModalInputNilai({
                         }
 
                         const { data } = await api.get(
-                            `/api-v1/jawaban-tk/praktikan/${praktikanId}/modul/${modul.id}`
+                            `/api/jawaban/tk/praktikan/${praktikanId}/modul/${modul.id}`
                         );
 
                         if (data?.success === false) {
@@ -488,22 +488,10 @@ export default function ModalInputNilai({
         retry: 1,
         staleTime: 1000 * 60 * 5,
         queryFn: async () => {
-            const { data } = await api.get(
-                `/api-v1/jawaban-ta/praktikan/${praktikan.id}/modul/${modul.id}`
-            );
-            const entries = Array.isArray(data?.jawaban_ta) ? data.jawaban_ta : [];
-
-            if (entries.length === 0) {
-                return { score: 0, hasAnswers: false };
-            }
-
-            const correct = entries.filter(
-                (e) => e.selected_opsi_id && e.selected_opsi_id === e.opsi_benar_id
-            ).length;
-
+            const { data } = await api.get(`/api/nilai-ta/${praktikan.id}/${modul.id}`);
             return {
-                score: Math.round((correct / entries.length) * 100 * 100) / 100,
-                hasAnswers: true,
+                score: data?.score ?? 0,
+                hasAnswers: Number(data?.total_questions ?? 0) > 0,
             };
         },
     });
@@ -514,22 +502,10 @@ export default function ModalInputNilai({
         retry: 1,
         staleTime: 1000 * 60 * 5,
         queryFn: async () => {
-            const { data } = await api.get(
-                `/api-v1/jawaban-tk/praktikan/${praktikan.id}/modul/${modul.id}`
-            );
-            const entries = Array.isArray(data?.jawaban_tk) ? data.jawaban_tk : [];
-
-            if (entries.length === 0) {
-                return { score: 0, hasAnswers: false };
-            }
-
-            const correct = entries.filter(
-                (e) => e.selected_opsi_id && e.selected_opsi_id === e.opsi_benar_id
-            ).length;
-
+            const { data } = await api.get(`/api/nilai-tk/${praktikan.id}/${modul.id}`);
             return {
-                score: Math.round((correct / entries.length) * 100 * 100) / 100,
-                hasAnswers: true,
+                score: data?.score ?? 0,
+                hasAnswers: Number(data?.total_questions ?? 0) > 0,
             };
         },
     });

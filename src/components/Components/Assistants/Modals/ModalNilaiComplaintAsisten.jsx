@@ -27,7 +27,7 @@ export default function ModalNilaiComplaintAsisten({
 
         setIsLoading(true);
         try {
-            await api.patch(`/api-v1/nilai-complaints/${complaint.id}`, {
+            await api.patch(`/api/nilai/complaints/${complaint.id}`, {
                 status,
                 notes,
             });

@@ -571,7 +571,7 @@ export default function ModalAnomalyPraktikum({ onClose }) {
         queryFn: async () => {
             const params = { limit: 500 };
 
-            const { data } = await api.get("/api-v1/anomalies/attendance", { params });
+            const { data } = await api.get("/api/anomalies/attendance", { params });
             return Array.isArray(data?.data) ? data.data : [];
         },
     });
@@ -583,7 +583,7 @@ export default function ModalAnomalyPraktikum({ onClose }) {
                 non_multiple: nilaiFilters.nonMultiple ? 1 : 0,
                 over_limit: nilaiFilters.overLimit ? 1 : 0,
             };
-            const { data } = await api.get("/api-v1/anomalies/grades", { params });
+            const { data } = await api.get("/api/anomalies/grades", { params });
             return Array.isArray(data?.data) ? data.data : [];
         },
     });

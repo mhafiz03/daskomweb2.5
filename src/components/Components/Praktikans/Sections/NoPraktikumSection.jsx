@@ -109,7 +109,7 @@ export default function NoPraktikumSection({
 
         const fetchActivePraktikum = async () => {
             try {
-                const { data } = await api.get('/api-v1/praktikum/check-praktikum');
+                const { data } = await api.get('/api/praktikum/check-praktikum');
 
                 if (data?.dk_required) {
                     setDkRequired(true);
@@ -233,13 +233,13 @@ export default function NoPraktikumSection({
 
         setIsSavingDk(true);
         try {
-            const { data } = await api.post("/api-v1/praktikum/set-dk", { dk: selectedDk });
+            const { data } = await api.post("/api/praktikum/set-dk", { dk: selectedDk });
             if (data?.status === "success") {
                 toast.success(`Berhasil memilih ${selectedDk}.`);
                 setDkRequired(false);
                 setSelectedDk(null);
 
-                const { data: checkData } = await api.get("/api-v1/praktikum/check-praktikum");
+                const { data: checkData } = await api.get("/api/praktikum/check-praktikum");
                 if (checkData?.status === "success") {
                     const praktikumPayload = checkData?.data ?? null;
                     const feedbackPending = Boolean(checkData?.feedback_pending ?? praktikumPayload?.feedback_pending ?? false);
