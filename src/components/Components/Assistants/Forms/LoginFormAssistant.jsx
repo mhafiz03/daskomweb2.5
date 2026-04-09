@@ -33,7 +33,7 @@ export default function LoginFormAssistant({ mode, onSwitchToRegister }) {
 
     function handleChange(e) {
         const key = e.target.id;
-        const value = e.target.value;
+        const value = key === "kode" ? e.target.value.toUpperCase() : e.target.value;
         setValues((values) => ({
             ...values,
             [key]: value,

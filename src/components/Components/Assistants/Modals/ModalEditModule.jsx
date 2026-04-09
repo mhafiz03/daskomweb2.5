@@ -25,7 +25,7 @@ export default function ModalEditModule({ onClose, modules, selectedModuleId, on
 
     useEffect(() => {
         setFormErrors({});
-        const selected = modules.find((module) => module.idM === selectedModuleId);
+        const selected = modules.find((module) => String(module.idM ?? module.id) === String(selectedModuleId));
         if (selected) {
             setValues({
                 judul: selected.judul ?? "",
@@ -50,7 +50,7 @@ export default function ModalEditModule({ onClose, modules, selectedModuleId, on
         const fetchDetail = async () => {
             setIsDetailLoading(true);
             try {
-                const { data } = await api.get(`/api-v1/modul/${selectedModuleId}`);
+                const { data } = await api.get(`/api/moduls/${selectedModuleId}`);
                 const detail = data?.data ?? null;
 
                 if (!detail || ignore) {
@@ -101,7 +101,7 @@ export default function ModalEditModule({ onClose, modules, selectedModuleId, on
             const responseData = response?.data?.data ?? null;
             const payload = responseData ?? values;
             const updatedModule = {
-                ...(modules.find((module) => module.idM === selectedModuleId) ?? {}),
+                ...(modules.find((module) => String(module.idM ?? module.id) === String(selectedModuleId)) ?? {}),
                 idM: selectedModuleId,
                 ...payload,
             };

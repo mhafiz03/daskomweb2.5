@@ -32,6 +32,8 @@ const normalizeBooleanFlag = (value) => {
 
 const toNumericFlag = (value) => (normalizeBooleanFlag(value) ? 1 : 0);
 
+const getModuleId = (module) => String(module?.idM ?? module?.id ?? "");
+
 
 export default function TableModule() {
     const [isModalOpenEdit, setIsModalOpenEdit] = useState(false);
@@ -54,7 +56,7 @@ export default function TableModule() {
             const next = new Set();
             if (Array.isArray(modules)) {
                 modules.forEach((module) => {
-                    const key = String(module.idM);
+                    const key = getModuleId(module);
                     if (previous.has(key)) {
                         next.add(key);
                     }
@@ -71,14 +73,14 @@ export default function TableModule() {
             }
 
             return prev.map((module) =>
-                module.idM === updatedModule.idM ? { ...module, ...updatedModule } : module
+                getModuleId(module) === getModuleId(updatedModule) ? { ...module, ...updatedModule } : module
             );
         });
     };
 
     const deleteModuleMutation = useMutation({
         mutationFn: async (id) => {
-            await api.delete(`/api-v1/modul/${id}`);
+            await api.delete(`/api/moduls/${id}`);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: MODULES_QUERY_KEY });
@@ -95,7 +97,9 @@ export default function TableModule() {
 
     const bulkUpdateMutation = useMutation({
         mutationFn: async ({ payload }) => {
-            await api.patch("/api-v1/modul/bulk-update", payload);
+            await Promise.all(
+                payload.map(({ id, ...item }) => api.patch(`/api/moduls/${id}`, item)),
+            );
         },
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: MODULES_QUERY_KEY });
@@ -109,7 +113,7 @@ export default function TableModule() {
     });
 
     const handleOpenModalEdit = (module) => {
-        setSelectedModuleId(module.idM);
+        setSelectedModuleId(getModuleId(module));
         setIsModalOpenEdit(true);
     };
 
@@ -169,7 +173,7 @@ export default function TableModule() {
 
         const next = new Set();
         modules.forEach((module) => {
-            next.add(String(module.idM));
+            next.add(getModuleId(module));
         });
         setSelectedModuleIds(next);
     };
@@ -182,7 +186,7 @@ export default function TableModule() {
 
         const payload = Array.from(selectedModuleIds).map((id) => {
             const key = String(id);
-            const module = modules.find((m) => String(m.idM) === key) ?? {};
+            const module = modules.find((m) => getModuleId(m) === key) ?? {};
             const resolvedEnglish = changes.hasOwnProperty("isEnglish")
                 ? toNumericFlag(changes.isEnglish)
                 : toNumericFlag(module.isEnglish);
@@ -191,7 +195,7 @@ export default function TableModule() {
                 : toNumericFlag(module.isUnlocked);
 
             return {
-                id: Number(id),
+                id,
                 judul: module.judul ?? "",
                 deskripsi: module.deskripsi ?? "",
                 isEnglish: resolvedEnglish,
@@ -217,7 +221,7 @@ export default function TableModule() {
                 video_link: module.video_link ?? "",
             };
 
-            const { data } = await api.patch(`/api-v1/modul/${module.idM}`, payload);
+            const { data } = await api.patch(`/api/moduls/${getModuleId(module)}`, payload);
             return data?.data ?? null;
         },
         onSuccess: (updatedModule) => {
@@ -228,7 +232,7 @@ export default function TableModule() {
                     }
 
                     return prev.map((module) =>
-                        module.idM === updatedModule.idM ? { ...module, ...updatedModule } : module,
+                        getModuleId(module) === getModuleId(updatedModule) ? { ...module, ...updatedModule } : module,
                     );
                 });
             } else {
@@ -245,7 +249,7 @@ export default function TableModule() {
     });
 
     const handleToggleUnlocked = (module) => {
-        if (!module?.idM) {
+        if (!getModuleId(module)) {
             return;
         }
 
@@ -338,7 +342,7 @@ export default function TableModule() {
                             const isEnglish = normalizeBooleanFlag(module?.isEnglish);
 
                             return (
-                                <li key={`module-${module.idM}-${index}`} className="transition hover:bg-depth-interactive/60">
+                                <li key={`module-${getModuleId(module)}-${index}`} className="transition hover:bg-depth-interactive/60">
                                     <button
                                         type="button"
                                         onClick={() => toggleAccordion(index)}
@@ -347,10 +351,10 @@ export default function TableModule() {
                                         <div className="flex flex-1 items-center gap-3">
                                             <input
                                                 type="checkbox"
-                                                checked={selectedModuleIds.has(String(module.idM))}
+                                                checked={selectedModuleIds.has(getModuleId(module))}
                                                 onChange={(event) => {
                                                     event.stopPropagation();
-                                                    toggleModuleSelection(module.idM);
+                                                    toggleModuleSelection(getModuleId(module));
                                                 }}
                                                 onClick={(event) => event.stopPropagation()}
                                                 className="h-4 w-4 rounded border-depth text-[var(--depth-color-primary)] focus:ring-[var(--depth-color-primary)]"
@@ -385,7 +389,7 @@ export default function TableModule() {
                                                 />
                                                 <button
                                                     type="button"
-                                                    onClick={() => handleDeleteClick(module.idM)}
+                                                    onClick={() => handleDeleteClick(getModuleId(module))}
                                                     className="inline-flex items-center gap-2 rounded-depth-md border border-red-500/60 bg-red-500/15 px-3 py-2 text-xs font-semibold text-red-400 shadow-depth-sm transition hover:-translate-y-0.5 hover:shadow-depth-md"
                                                 >
                                                     <img className="h-4 w-4" src={trashIcon} alt="Delete" />

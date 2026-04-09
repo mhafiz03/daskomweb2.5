@@ -1,5 +1,5 @@
 import type { Hono } from "hono";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { getDb } from "../utils";
 import {
     jawabanFitbs, jawabanJurnals, jawabanMandiris, jawabanTas, jawabanTks, jawabanTps,
@@ -100,15 +100,54 @@ export function registerJawabanRoutes(app: Hono<AppBindings>) {
     // ── TP ────────────────────────────────────────────────────────────────
     app.get("/api/jawaban/tp", requireSession(async c => {
         const db = getDb(c.env);
+        const user = c.get("user")!;
         const { modulId } = c.req.query();
+        if (user.userType === "praktikan") {
+            if (modulId) {
+                return c.json(await db.select().from(jawabanTps).where(and(
+                    eq(jawabanTps.modulId, modulId),
+                    eq(jawabanTps.praktikanId, user.id),
+                )));
+            }
+
+            return c.json(await db.select().from(jawabanTps).where(eq(jawabanTps.praktikanId, user.id)));
+        }
+
         if (modulId) return c.json(await db.select().from(jawabanTps).where(eq(jawabanTps.modulId, modulId)));
         return c.json(await db.select().from(jawabanTps));
     }));
     app.post("/api/jawaban/tp", requirePraktikan(async c => {
         const user = c.get("user")!;
         const body = await c.req.json();
-        const [r] = await getDb(c.env).insert(jawabanTps).values({ ...body, praktikanId: user.id }).returning();
-        return c.json(r, 201);
+        const db = getDb(c.env);
+        const submissions = Array.isArray(body) ? body : [body];
+        const results = [];
+
+        for (const submission of submissions) {
+            const soalId = submission?.soal_id ?? submission?.soalId;
+            const modulId = submission?.modul_id ?? submission?.modulId;
+            const jawaban = String(submission?.jawaban ?? "-");
+
+            const existing = await db.select().from(jawabanTps).where(and(
+                eq(jawabanTps.praktikanId, user.id),
+                eq(jawabanTps.soalId, soalId),
+            )).get();
+
+            if (existing) {
+                const [updated] = await db.update(jawabanTps)
+                    .set({ jawaban, modulId, updatedAt: new Date() })
+                    .where(eq(jawabanTps.id, existing.id))
+                    .returning();
+                results.push(updated);
+            } else {
+                const [created] = await db.insert(jawabanTps)
+                    .values({ praktikanId: user.id, soalId, modulId, jawaban })
+                    .returning();
+                results.push(created);
+            }
+        }
+
+        return c.json(Array.isArray(body) ? { status: "success", data: results } : results[0], 201);
     }));
 
     // ── Autosave (temp) ───────────────────────────────────────────────────

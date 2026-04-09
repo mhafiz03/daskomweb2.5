@@ -106,14 +106,10 @@ export default function TugasPendahuluanPage() {
         enabled: Boolean(selectedModul),
         queryFn: async () => {
             try {
-                const { data } = await api.get(`/api-v1/soal-tp/${selectedModul}`);
-                if (Array.isArray(data?.data)) {
-                    return normaliseQuestions(data.data);
-                }
-                if (Array.isArray(data)) {
-                    return normaliseQuestions(data);
-                }
-                return [];
+                const { data } = await api.get("/api/soal/tp", {
+                    params: { modulId: selectedModul },
+                });
+                return normaliseQuestions(Array.isArray(data?.data) ? data.data : data);
             } catch (error) {
                 if (error?.response?.status === 404) {
                     return [];
@@ -127,11 +123,10 @@ export default function TugasPendahuluanPage() {
         queryKey: ["tp-answers", selectedModul],
         enabled: Boolean(selectedModul),
         queryFn: async () => {
-            const { data } = await api.get(`/api-v1/jawaban-tp/${selectedModul}`);
-            if (Array.isArray(data?.jawaban_tp)) {
-                return data.jawaban_tp;
-            }
-            return [];
+            const { data } = await api.get("/api/jawaban/tp", {
+                params: { modulId: selectedModul },
+            });
+            return Array.isArray(data?.jawaban_tp) ? data.jawaban_tp : Array.isArray(data) ? data : [];
         },
     });
 
@@ -155,7 +150,7 @@ export default function TugasPendahuluanPage() {
 
     const submitMutation = useMutation({
         mutationFn: async (payload) => {
-            const { data } = await api.post("/api-v1/jawaban-tp", payload);
+            const { data } = await api.post("/api/jawaban/tp", payload);
             return data;
         },
         onSuccess: () => {

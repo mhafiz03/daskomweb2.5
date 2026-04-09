@@ -1,31 +1,378 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
 @import "tailwindcss";
 
+@layer base {
+    :root {
+        --depth-font-family: "Inter", sans-serif;
+        --depth-color-background: hsl(220, 15%, 96%);
+        --depth-color-card: hsl(220, 15%, 100%);
+        --depth-color-interactive: hsl(220, 15%, 94%);
+        --depth-color-primary: hsl(83, 67%, 50%);
+        --depth-color-primary-dark: hsl(83, 67%, 45%);
+        --depth-text-primary: hsl(220, 25%, 20%);
+        --depth-text-secondary: hsl(220, 10%, 45%);
+        --depth-text-tertiary: hsl(220, 10%, 55%);
+        --depth-text-disabled: hsl(220, 10%, 72%);
+        --depth-border: hsl(220, 15%, 90%);
+        --depth-color-surface: hsl(220, 15%, 98%);
+        --depth-color-hover: hsl(220, 15%, 91%);
+        --depth-color-secondary: hsl(220, 10%, 82%);
+        --depth-gradient-background: radial-gradient(
+                circle at 20% 20%,
+                hsla(83, 67%, 50%, 0.15),
+                transparent 55%
+            ),
+            radial-gradient(
+                circle at 80% 0%,
+                hsla(83, 67%, 65%, 0.12),
+                transparent 55%
+            );
+        --depth-gradient-surface-start: hsla(83, 67%, 80%, 0.2);
+        --depth-gradient-surface-end: hsla(0, 0%, 100%, 0.239);
+        --depth-glass-border: hsla(83, 67%, 35%, 0.35);
+        --depth-button-gradient-start: hsla(83, 67%, 52%, 0.92);
+        --depth-button-gradient-end: hsla(107, 42%, 57%, 0.92);
+        --depth-button-text: #ffffff;
+        --depth-heading-gradient-start: hsl(83, 76%, 45%);
+        --depth-heading-gradient-end: hsl(128, 42%, 44%);
+        --typewriter-cursor-color: hsla(83, 67%, 30%, 0.9);
+        --nav-icon-filter: brightness(0) saturate(100%) invert(82%) sepia(38%)
+            saturate(928%) hue-rotate(38deg) brightness(96%) contrast(90%);
+        --nav-icon-filter-hover: brightness(0) saturate(100%) invert(92%) sepia(8%)
+            saturate(1234%) hue-rotate(38deg) brightness(97%) contrast(92%);
+        --nav-icon-filter-active: brightness(0) invert(1);
+        --depth-shadow-sm: inset 0 1px 1px #ffffff80, 0 1px 2px #0000001a,
+            0 2px 4px #0000001a;
+        --depth-shadow-md: inset 0 1px 1px #ffffff80, 0 2px 4px #0000001a,
+            0 4px 8px #0000001a;
+        --depth-shadow-lg: inset 0 1px 1px #ffffff80, 0 4px 6px #0000001a,
+            0 8px 16px #0000001a;
+        --depth-shadow-inset: inset 0 2px 4px #0000001a;
+        --depth-radius-sm: 0.375rem;
+        --depth-radius-md: 0.5rem;
+        --depth-radius-lg: 0.75rem;
+        --depth-radius-full: 9999px;
+        --depth-modal-max-width: 42rem;
+        color-scheme: light;
+    }
+
+    :root[data-theme="dark"],
+    [data-theme="dark"] {
+        --depth-color-background: hsl(220, 25%, 10%);
+        --depth-color-card: hsl(220, 25%, 14%);
+        --depth-color-interactive: hsla(166, 60%, 35%, 0.15);
+        --depth-color-primary: #4c7a4c;
+        --depth-color-primary-dark: #3f663f;
+        --depth-text-primary: hsl(220, 15%, 95%);
+        --depth-text-secondary: hsl(220, 10%, 65%);
+        --depth-text-tertiary: hsl(220, 10%, 58%);
+        --depth-text-disabled: hsl(220, 10%, 42%);
+        --depth-border: hsl(220, 25%, 25%);
+        --depth-color-surface: hsl(220, 24%, 18%);
+        --depth-color-hover: hsl(220, 20%, 20%);
+        --depth-color-secondary: hsl(220, 12%, 34%);
+        --depth-gradient-background: radial-gradient(
+                circle at 5% 10%,
+                hsla(166, 80%, 70%, 0.12),
+                transparent 55%
+            ),
+            radial-gradient(
+                circle at 90% 0%,
+                hsla(46, 80%, 70%, 0.12),
+                transparent 55%
+            );
+        --depth-gradient-surface-start: hsla(166, 80%, 65%, 0.12);
+        --depth-gradient-surface-end: hsla(106, 50%, 15%, 0.7);
+        --depth-glass-border: hsla(166, 70%, 65%, 0.25);
+        --depth-button-gradient-start: hsla(166, 80%, 62%, 0.65);
+        --depth-button-gradient-end: hsla(46, 90%, 60%, 0.65);
+        --depth-button-text: hsl(0, 0%, 95%);
+        --depth-heading-gradient-start: hsl(166, 80%, 68%);
+        --depth-heading-gradient-end: hsl(46, 90%, 70%);
+        --typewriter-cursor-color: hsla(166, 80%, 88%, 0.9);
+        --typewriter-icon-color: hsl(166, 80%, 74%);
+        --nav-icon-filter: brightness(0) saturate(100%) invert(92%) sepia(18%)
+            saturate(622%) hue-rotate(84deg) brightness(118%) contrast(107%);
+        --nav-icon-filter-hover: brightness(0) saturate(100%) invert(100%)
+            sepia(6%) saturate(749%) hue-rotate(87deg) brightness(124%)
+            contrast(108%);
+        --nav-icon-filter-active: brightness(0) invert(1);
+        --depth-shadow-sm: inset 0 1px 1px #ffffff1a, 0 1px 2px #0000004d,
+            0 2px 4px #0000004d;
+        --depth-shadow-md: inset 0 1px 1px #ffffff1a, 0 2px 4px #0000004d,
+            0 4px 8px #0000004d;
+        --depth-shadow-lg: inset 0 1px 1px #ffffff1a, 0 4px 6px #0000004d,
+            0 8px 16px #0000004d;
+        --depth-shadow-inset: inset 0 2px 4px #0000004d;
+        --depth-modal-max-width: 42rem;
+        --depth-modal-width-xl: 90vw;
+        color-scheme: dark;
+    }
+
+    ::-webkit-scrollbar {
+        width: 3px;
+        height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: var(--depth-color-background);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: hsl(83, 67%, 50%);
+        border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: hsl(83, 67%, 45%);
+    }
+
+    :root[data-theme="dark"] ::-webkit-scrollbar-track {
+        background: hsl(220, 25%, 10%);
+    }
+
+    :root[data-theme="dark"] ::-webkit-scrollbar-thumb {
+        background: #4c7a4c;
+    }
+
+    :root[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+        background: #5a8f5a;
+    }
+
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: hsl(83, 67%, 50%) var(--depth-color-background);
+    }
+
+    :root[data-theme="dark"] * {
+        scrollbar-color: #4c7a4c hsl(220, 25%, 10%);
+    }
+
+    body {
+        background-color: var(--depth-color-background);
+        background-image: var(--depth-gradient-background);
+        background-repeat: no-repeat;
+        background-size: 160% 160%;
+        background-attachment: fixed;
+        color: var(--depth-text-primary);
+        font-family: var(--depth-font-family);
+        transition: background-color 300ms ease, color 300ms ease,
+            background-image 400ms ease;
+    }
+}
+
 @layer components {
-    .depth-modal-root {
-        position: relative;
-        z-index: 9999;
+    .glass-surface {
+        background: linear-gradient(
+            135deg,
+            var(--depth-gradient-surface-start),
+            var(--depth-gradient-surface-end)
+        );
+        border: 1px solid var(--depth-glass-border);
+        box-shadow: var(--depth-shadow-md);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        transition: border-color 300ms ease, box-shadow 300ms ease,
+            background 400ms ease;
+    }
+
+    .glass-surface:hover {
+        box-shadow: var(--depth-shadow-lg);
+    }
+
+    .glass-button {
+        background-image: linear-gradient(
+            135deg,
+            var(--depth-button-gradient-start),
+            var(--depth-button-gradient-end)
+        );
+        background-size: 180% 180%;
+        color: var(--depth-button-text);
+        border: 1px solid var(--depth-glass-border);
+        box-shadow: var(--depth-shadow-sm);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        transition: transform 250ms ease, box-shadow 300ms ease,
+            background-position 450ms ease, filter 300ms ease;
+    }
+
+    .glass-button:hover {
+        background-position: 100% 0;
+        box-shadow: var(--depth-shadow-md);
+        filter: brightness(1.05);
+    }
+
+    .gradient-heading {
+        background-image: linear-gradient(
+            120deg,
+            var(--depth-heading-gradient-start),
+            var(--depth-heading-gradient-end)
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .typewriter-wrapper {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .typewriter-text {
+        display: inline-block;
+        white-space: nowrap;
+    }
+
+    .typewriter-cursor {
+        display: inline-block;
+        width: 0.4em;
+        height: 1.1em;
+        background: var(--typewriter-cursor-color);
+        box-shadow: 0 0 0.75rem rgba(0, 0, 0, 0.18);
+        animation: typewriter-blink 1s steps(1, end) infinite;
+    }
+}
+
+@keyframes typewriter-blink {
+    0%,
+    45% {
+        opacity: 1;
+    }
+
+    50%,
+    100% {
+        opacity: 0;
+    }
+}
+
+@layer utilities {
+    .bg-depth-background {
+        background-color: var(--depth-color-background);
+        transition: background-color 300ms ease;
+    }
+
+    .bg-depth-gradient {
+        background-color: var(--depth-color-background);
+        background-image: var(--depth-gradient-background);
+        background-repeat: no-repeat;
+        background-size: 160% 160%;
+        background-attachment: fixed;
+        transition: background-color 300ms ease, background-image 400ms ease;
+    }
+
+    .bg-depth-card {
+        background-color: var(--depth-color-card);
+        transition: background-color 300ms ease;
+    }
+
+    .bg-depth-interactive {
+        background-color: var(--depth-color-interactive);
+        transition: background-color 300ms ease;
+    }
+
+    .bg-depth-hover {
+        background-color: var(--depth-color-hover);
+        transition: background-color 300ms ease;
+    }
+
+    .bg-depth-secondary {
+        background-color: var(--depth-color-secondary);
+        transition: background-color 300ms ease;
+    }
+
+    .bg-depth-surface {
+        background-color: var(--depth-color-surface);
+        transition: background-color 300ms ease;
+    }
+
+    .text-depth-primary {
+        color: var(--depth-text-primary);
+        transition: color 300ms ease;
+    }
+
+    .text-depth-secondary {
+        color: var(--depth-text-secondary);
+        transition: color 300ms ease;
+    }
+
+    .text-depth-tertiary {
+        color: var(--depth-text-tertiary);
+        transition: color 300ms ease;
+    }
+
+    .text-depth-disabled {
+        color: var(--depth-text-disabled);
+        transition: color 300ms ease;
+    }
+
+    .border-depth {
+        border-color: var(--depth-border);
+        transition: border-color 300ms ease;
+    }
+
+    .shadow-depth-sm {
+        box-shadow: var(--depth-shadow-sm);
+    }
+
+    .shadow-depth-md {
+        box-shadow: var(--depth-shadow-md);
+    }
+
+    .shadow-depth-lg {
+        box-shadow: var(--depth-shadow-lg);
+    }
+
+    .shadow-depth-inset {
+        box-shadow: var(--depth-shadow-inset);
+    }
+
+    .shadow-depth-inner {
+        box-shadow: var(--depth-shadow-inset);
+    }
+
+    .rounded-depth-sm {
+        border-radius: var(--depth-radius-sm);
+    }
+
+    .rounded-depth-md {
+        border-radius: var(--depth-radius-md);
+    }
+
+    .rounded-depth-lg {
+        border-radius: var(--depth-radius-lg);
+    }
+
+    .rounded-depth-full {
+        border-radius: var(--depth-radius-full);
+    }
+
+    .font-depth {
+        font-family: var(--depth-font-family);
     }
 
     .depth-modal-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 50;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 1rem;
-        background: color-mix(in srgb, black 55%, transparent);
-        backdrop-filter: blur(6px);
+        position: fixed;
+        inset: 0;
+        z-index: 9999 !important;
+        padding: 1.5rem;
+        background: rgba(10, 14, 25, 0.7);
+        backdrop-filter: blur(8px);
     }
 
     .depth-modal-container {
-        width: min(100%, 42rem);
-        border-radius: 1rem;
-        border: 1px solid color-mix(in srgb, var(--depth-color-border, #334155) 80%, transparent);
-        background: var(--depth-color-card, #0f172a);
-        color: var(--depth-text-primary, #f8fafc);
-        box-shadow: 0 24px 80px rgba(15, 23, 42, 0.35);
-        padding: 1.5rem;
+        width: 100%;
+        max-width: var(--depth-modal-max-width, 42rem);
+        background-color: var(--depth-color-card);
+        color: var(--depth-text-primary);
+        border: 1px solid var(--depth-border);
+        border-radius: var(--depth-radius-lg);
+        box-shadow: var(--depth-shadow-lg);
+        padding: 1.75rem;
+        position: relative;
     }
 
     .depth-modal-header {
@@ -33,13 +380,63 @@
         align-items: center;
         justify-content: space-between;
         gap: 1rem;
-        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid var(--depth-border);
     }
 
     .depth-modal-title {
-        font-size: 1.125rem;
-        font-weight: 700;
-        line-height: 1.4;
-        color: var(--depth-text-primary, #f8fafc);
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--depth-text-primary);
+    }
+
+    .depth-modal-close {
+        border: none;
+        background: transparent;
+        color: var(--depth-text-secondary);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--depth-radius-full);
+        padding: 0.25rem;
+        transition: transform 150ms ease, color 150ms ease;
+    }
+
+    .depth-modal-close:hover {
+        color: var(--depth-text-primary);
+        transform: translateY(-1px);
+    }
+
+    .nav-icon-filter {
+        filter: var(--nav-icon-filter);
+        transition: filter 200ms ease;
+    }
+
+    .group:hover .nav-icon-filter {
+        filter: var(--nav-icon-filter-hover);
+    }
+
+    .nav-icon-filter-active,
+    .group:hover .nav-icon-filter-active {
+        filter: var(--nav-icon-filter-active);
+    }
+
+    .edit-icon-filter {
+        filter: none;
+    }
+
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+
+    :root[data-theme="dark"] .edit-icon-filter,
+    [data-theme="dark"] .edit-icon-filter {
+        filter: brightness(0) invert(1);
     }
 }

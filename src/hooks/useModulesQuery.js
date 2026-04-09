@@ -5,13 +5,18 @@ export const MODULES_QUERY_KEY = ["modules"];
 
 export const fetchModules = async () => {
     const { data } = await api.get("/api/moduls");
+    const items = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : [];
 
-    if (Array.isArray(data)) {
-        return data;
-    }
-
-    if (Array.isArray(data?.data)) {
-        return data.data;
+    if (Array.isArray(items)) {
+        return items.map((module) => ({
+            ...module,
+            idM: module?.idM ?? module?.id,
+            judul: module?.judul ?? module?.nama ?? "",
+            deskripsi: module?.deskripsi ?? "",
+            modul_link: module?.modul_link ?? module?.modulLink ?? "",
+            ppt_link: module?.ppt_link ?? module?.pptLink ?? "",
+            video_link: module?.video_link ?? module?.videoLink ?? "",
+        }));
     }
 
     if (data?.success === false) {
