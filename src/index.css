@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@layer components {
+    .depth-modal-root {
+        position: relative;
+        z-index: 9999;
+    }
+
+    .depth-modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        background: color-mix(in srgb, black 55%, transparent);
+        backdrop-filter: blur(6px);
+    }
+
+    .depth-modal-container {
+        width: min(100%, 42rem);
+        border-radius: 1rem;
+        border: 1px solid color-mix(in srgb, var(--depth-color-border, #334155) 80%, transparent);
+        background: var(--depth-color-card, #0f172a);
+        color: var(--depth-text-primary, #f8fafc);
+        box-shadow: 0 24px 80px rgba(15, 23, 42, 0.35);
+        padding: 1.5rem;
+    }
+
+    .depth-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .depth-modal-title {
+        font-size: 1.125rem;
+        font-weight: 700;
+        line-height: 1.4;
+        color: var(--depth-text-primary, #f8fafc);
+    }
+}
