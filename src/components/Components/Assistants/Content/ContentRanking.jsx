@@ -95,10 +95,7 @@ export default function ContentRanking() {
         const query = { limit };
 
         if (selectedClass !== "all") {
-            const parsed = Number.parseInt(selectedClass, 10);
-            if (!Number.isNaN(parsed)) {
-                query.kelas_id = parsed;
-            }
+            query.kelas_id = selectedClass;
         }
 
         return query;

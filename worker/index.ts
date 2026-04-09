@@ -12,6 +12,7 @@ import { registerNilaiRoutes } from "./routes/nilai";
 import { registerPollingRoutes } from "./routes/polling";
 import { registerAdminRoutes } from "./routes/admin";
 import { registerImageKitRoutes } from "./routes/imagekit";
+import { registerRoleRoutes } from "./routes/role";
 import type { AppBindings } from "./types";
 
 const app = new Hono<AppBindings>();
@@ -32,6 +33,7 @@ registerNilaiRoutes(app);
 registerPollingRoutes(app);
 registerAdminRoutes(app);
 registerImageKitRoutes(app);
+registerRoleRoutes(app);
 
 // Health check
 app.get("/api/health", c => c.json({ ok: true }));

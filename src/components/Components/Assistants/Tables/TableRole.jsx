@@ -106,8 +106,8 @@ export default function TableManageRole({ asisten }) {
         });
     };
 
-    const handleOpenModalEdit = (kode) => {
-        setSelectedAsistenId(kode);
+    const handleOpenModalEdit = (asistenId) => {
+        setSelectedAsistenId(asistenId);
         setIsModalOpenEdit(true);
     };
 
@@ -221,7 +221,7 @@ export default function TableManageRole({ asisten }) {
                                         <td className="px-4 py-3 text-center">
                                             <button
                                                 type="button"
-                                                onClick={() => handleOpenModalEdit(item.kode)}
+                                                onClick={() => handleOpenModalEdit(item.id)}
                                                 className="inline-flex items-center gap-2 rounded-depth-md border border-depth bg-depth-interactive px-3 py-1.5 text-xs font-semibold text-depth-primary shadow-depth-sm transition hover:-translate-y-0.5 hover:shadow-depth-md"
                                             >
                                                 <img src={editIcon} alt="Edit" className="edit-icon-filter h-4 w-4" />

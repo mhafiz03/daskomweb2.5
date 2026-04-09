@@ -197,9 +197,7 @@ export default function ModalEditPlotting({ onClose, kelas }) {
 
     const updateKelasMutation = useMutation({
         mutationFn: async ({ id, payload }) => {
-            const token = localStorage.getItem("token");
-            const config = token ? { headers: { Authorization: `Bearer ${token}` } } : undefined;
-            const { data } = await send(updateKelas(id), payload, config);
+            const { data } = await send(updateKelas(id), payload);
             return data;
         },
         onSuccess: () => {

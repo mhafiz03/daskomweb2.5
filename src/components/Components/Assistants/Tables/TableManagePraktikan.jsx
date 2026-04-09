@@ -94,11 +94,11 @@ export default function TableManagePraktikan({
                             {items.map((praktikan) => (
                                 <tr key={praktikan.id} className="transition hover:bg-depth-interactive/40">
                                     <td className="px-4 py-3 font-medium text-depth-primary">{praktikan.nim}</td>
-                                    <td className="px-4 py-3 text-depth-secondary font-semibold">{praktikan.dk ?? "-"}</td>
                                     <td className="px-4 py-3">
                                         <div className="font-semibold text-depth-primary">{praktikan.nama}</div>
                                     </td>
                                     <td className="px-4 py-3 text-depth-secondary">{formatKelas(praktikan.kelas)}</td>
+                                    <td className="px-4 py-3 text-depth-secondary font-semibold">{praktikan.dk ?? "-"}</td>
                                     <td className="px-4 py-3">
                                         <a href={`mailto:${praktikan.email}`} className="text-[var(--depth-color-primary)] underline-offset-2 hover:underline">
                                             {praktikan.email}

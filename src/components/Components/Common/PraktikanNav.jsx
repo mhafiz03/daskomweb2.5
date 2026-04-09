@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { Link, useLocation } from "react-router-dom";
 import { logout as logoutPraktikanSession } from "@/lib/auth";
+import { api } from "@/lib/api";
 import profileIcon from "../../../assets/nav/Icon-Profile.svg";
 import praktikumIcon from "../../../assets/nav/Icon-Praktikum.svg";
 import moduleIcon from "../../../assets/nav/Icon-Module.svg";
@@ -14,7 +15,6 @@ import logoutIcon from "../../../assets/nav/Icon-Logout.svg";
 import komplainIcon from "../../../assets/nav/Icon-komplain.svg";
 import ModalLogout from './Modals/ModalLogout';
 import ModalPassword from './Modals/ModalPassword';
-import { updatePassword as updatePraktikanPassword } from "@/lib/routes/praktikan";
 
 const STORAGE_KEY = 'praktikanNavCollapsed';
 
@@ -72,6 +72,11 @@ const NAV_ITEMS = [
 
 export default function PraktikanNav({ praktikan }) {
     const location = useLocation();
+    const updatePraktikanPasswordAction = (values) =>
+        api.post("/api/auth/change-password", {
+            currentPassword: values.current_password,
+            newPassword: values.password,
+        });
 
     const normalizePathSegment = (path) => {
         if (!path) {
@@ -326,7 +331,7 @@ export default function PraktikanNav({ praktikan }) {
             <ModalPassword
                 isOpen={isPasswordModalOpen}
                 onClose={() => setIsPasswordModalOpen(false)}
-                updatePasswordAction={updatePraktikanPassword}
+                updatePasswordAction={updatePraktikanPasswordAction}
                 userType="praktikan"
             />
 

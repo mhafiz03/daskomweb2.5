@@ -131,6 +131,16 @@ def ensure_minimum_schema(cursor: sqlite3.Cursor) -> None:
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         );
 
+        CREATE TABLE IF NOT EXISTS roles (
+            id TEXT PRIMARY KEY NOT NULL,
+            name TEXT NOT NULL UNIQUE,
+            permissions TEXT NOT NULL DEFAULT '[]',
+            paket TEXT NOT NULL DEFAULT '[]',
+            guard_name TEXT NOT NULL DEFAULT 'asisten',
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL
+        );
+
         CREATE TABLE IF NOT EXISTS kelas (
             id TEXT PRIMARY KEY NOT NULL,
             kelas TEXT NOT NULL,
@@ -142,6 +152,34 @@ def ensure_minimum_schema(cursor: sqlite3.Cursor) -> None:
             created_at INTEGER NOT NULL,
             updated_at INTEGER NOT NULL
         );
+
+        CREATE TABLE IF NOT EXISTS autosave_snapshots (
+            id TEXT PRIMARY KEY NOT NULL,
+            praktikan_id TEXT NOT NULL,
+            modul_id TEXT NOT NULL,
+            tipe_soal TEXT NOT NULL,
+            jawaban TEXT NOT NULL DEFAULT '{}',
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL,
+            FOREIGN KEY (praktikan_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+
+        CREATE UNIQUE INDEX IF NOT EXISTS autosave_snapshots_praktikan_modul_tipe_unique
+            ON autosave_snapshots (praktikan_id, modul_id, tipe_soal);
+
+        CREATE TABLE IF NOT EXISTS autosave_question_snapshots (
+            id TEXT PRIMARY KEY NOT NULL,
+            praktikan_id TEXT NOT NULL,
+            modul_id TEXT NOT NULL,
+            tipe_soal TEXT NOT NULL,
+            question_ids TEXT NOT NULL DEFAULT '[]',
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL,
+            FOREIGN KEY (praktikan_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+
+        CREATE UNIQUE INDEX IF NOT EXISTS autosave_question_snapshots_praktikan_modul_tipe_unique
+            ON autosave_question_snapshots (praktikan_id, modul_id, tipe_soal);
         """
     )
 

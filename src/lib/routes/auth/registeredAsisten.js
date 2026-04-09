@@ -1,3 +1,3 @@
 import { makeRoute } from "../utils.js";
 
-export const store = makeRoute("post", "/api-v1/register/asisten");
+export const store = makeRoute("post", "/api/auth/register/asisten");

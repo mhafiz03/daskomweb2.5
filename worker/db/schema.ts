@@ -40,6 +40,16 @@ export const sessions = sqliteTable("sessions", {
     createdAt: integer("created_at", { mode: "timestamp_ms" }).default(defaultNow).notNull(),
 });
 
+export const roles = sqliteTable("roles", {
+    id: text("id").primaryKey().$defaultFn(uuid),
+    name: text("name").notNull().unique(),
+    permissions: text("permissions").notNull().default("[]"),
+    paket: text("paket").notNull().default("[]"),
+    guardName: text("guard_name").notNull().default("asisten"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).default(defaultNow).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).default(defaultNow).$onUpdate(() => new Date()).notNull(),
+});
+
 // ---------------------------------------------------------------------------
 // Core LMS
 // ---------------------------------------------------------------------------

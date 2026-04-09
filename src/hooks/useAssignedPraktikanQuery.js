@@ -27,9 +27,8 @@ const latestByKey = (items, keyBuilder) => {
 };
 
 const fetchAssignedPraktikan = async () => {
-    const [sessionRes, praktikumsRes, praktikansRes, modulesRes, kelasRes, nilaisRes, laporanRes] = await Promise.all([
+    const [sessionRes, praktikansRes, modulesRes, kelasRes, nilaisRes, laporanRes] = await Promise.all([
         api.get("/api/auth/me").catch(() => ({ data: { user: null } })),
-        api.get("/api/praktikums"),
         api.get("/api/praktikans", { params: { per_page: 500 } }),
         api.get("/api/moduls"),
         api.get("/api/kelas"),
@@ -38,9 +37,6 @@ const fetchAssignedPraktikan = async () => {
     ]);
     const sessionUser = sessionRes.data?.user ?? null;
 
-    const praktikums = toArray(praktikumsRes.data).filter(
-        (item) => item?.isActive || item?.status === "ongoing",
-    );
     const praktikans = toArray(praktikansRes.data?.data ?? praktikansRes.data);
     const modules = toArray(modulesRes.data?.data ?? modulesRes.data);
     const kelas = toArray(kelasRes.data?.data ?? kelasRes.data);
@@ -70,21 +66,27 @@ const fetchAssignedPraktikan = async () => {
         (item) => `${item?.praktikanId ?? item?.praktikan_id}:${item?.modulId ?? item?.modul_id}`,
     );
 
-    return praktikums.flatMap((praktikum) => {
-        const classKey = String(praktikum?.kelasId ?? praktikum?.kelas_id ?? "");
-        const modulKey = String(praktikum?.modulId ?? praktikum?.modul_id ?? "");
-        const practicumStudents = praktikanByClass.get(classKey) ?? [];
-        const kelasItem = kelasMap.get(classKey) ?? null;
-        const modulItem = moduleMap.get(modulKey) ?? null;
-        const timestamp = praktikum?.updatedAt ?? praktikum?.startedAt ?? praktikum?.createdAt ?? null;
+    return Array.from(latestLaporanMap.values())
+        .filter((laporan) => {
+            if (!sessionUser?.id) {
+                return true;
+            }
 
-        return practicumStudents.map((praktikan) => {
-            const key = `${praktikan?.id}:${modulKey}`;
-            const nilai = latestNilaiMap.get(key) ?? null;
-            const laporan = latestLaporanMap.get(key) ?? null;
+            const laporanAsistenId = laporan?.asistenId ?? laporan?.asisten_id ?? null;
+            return String(laporanAsistenId ?? "") === String(sessionUser.id);
+        })
+        .map((laporan) => {
+            const praktikanId = laporan?.praktikanId ?? laporan?.praktikan_id ?? null;
+            const modulKey = String(laporan?.modulId ?? laporan?.modul_id ?? "");
+            const praktikan = praktikans.find((item) => String(item?.id) === String(praktikanId)) ?? null;
+            const kelasKey = String(praktikan?.kelasId ?? praktikan?.kelas_id ?? "");
+            const kelasItem = kelasMap.get(kelasKey) ?? null;
+            const modulItem = moduleMap.get(modulKey) ?? null;
+            const nilai = latestNilaiMap.get(`${praktikanId}:${modulKey}`) ?? null;
+            const timestamp = laporan?.updatedAt ?? laporan?.updated_at ?? laporan?.createdAt ?? laporan?.created_at ?? null;
 
             return {
-                id: key,
+                id: laporan?.id ?? `${praktikanId}:${modulKey}`,
                 praktikan: {
                     ...praktikan,
                     nama: praktikan?.nama ?? praktikan?.name ?? "",
@@ -109,28 +111,17 @@ const fetchAssignedPraktikan = async () => {
                 pesan: laporan?.pesan ?? "",
                 rating_praktikum: laporan?.ratingPraktikum ?? laporan?.rating_praktikum ?? null,
                 rating_asisten: laporan?.ratingAsisten ?? laporan?.rating_asisten ?? null,
+                asistenId: laporan?.asistenId ?? laporan?.asisten_id ?? null,
                 datetime: {
                     date: timestamp,
                     time: timestamp,
                 },
                 timestamps: {
-                    created_at: praktikum?.createdAt ?? null,
+                    created_at: laporan?.createdAt ?? laporan?.created_at ?? null,
                     updated_at: timestamp,
                 },
             };
         });
-    }).filter((assignment) => {
-        if (!sessionUser?.id) {
-            return true;
-        }
-
-        const nilaiAsistenId = assignment?.nilai?.asistenId ?? assignment?.nilai?.asisten_id ?? null;
-        const laporanAsistenId = assignment?.asistenId ?? assignment?.asisten_id ?? null;
-
-        return (
-            String(nilaiAsistenId ?? laporanAsistenId ?? sessionUser.id) === String(sessionUser.id)
-        );
-    });
 };
 
 export const useAssignedPraktikanQuery = (options = {}) =>

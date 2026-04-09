@@ -1,6 +1,6 @@
 import { ensureId, makeRoute } from "./utils.js";
 
-const BASE_PATH = "/api-v1/jadwal";
+const BASE_PATH = "/api/jadwal-jaga";
 
 export const store = makeRoute("post", BASE_PATH);
 

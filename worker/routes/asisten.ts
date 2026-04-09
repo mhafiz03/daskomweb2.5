@@ -1,15 +1,18 @@
 import type { Hono } from "hono";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { getDb } from "../utils";
 import { users, jadwalJagas, fotoAsistens, feedback } from "../db";
-import { requirePermission, requireSession, requireAsisten } from "../middleware/session";
+import { requirePermission, requireSession, requireAsisten, requirePraktikan } from "../middleware/session";
 import type { AppBindings } from "../types";
 
 export function registerAsistenRoutes(app: Hono<AppBindings>) {
     app.get("/api/asistens", requireSession(async c => {
         const db = getDb(c.env);
         const rows = await db.select().from(users).where(eq(users.userType, "asisten"));
-        return c.json(rows.map(({ passwordHash: _, ...r }) => r));
+        return c.json(rows.map(({ passwordHash: _, ...r }) => ({
+            ...r,
+            role: r.asistenRole,
+        })));
     }));
 
     app.get("/api/asistens/:id", requireSession(async c => {
@@ -19,7 +22,7 @@ export function registerAsistenRoutes(app: Hono<AppBindings>) {
             .get();
         if (!row || row.userType !== "asisten") return c.json({ error: "Not found" }, 404);
         const { passwordHash: _, ...safe } = row;
-        return c.json(safe);
+        return c.json({ ...safe, role: safe.asistenRole });
     }));
 
     app.patch("/api/asistens/:id", requirePermission("manage-profile")(async c => {
@@ -58,16 +61,64 @@ export function registerAsistenRoutes(app: Hono<AppBindings>) {
         const [r] = await getDb(c.env).insert(fotoAsistens).values({ userId: user.id, fotoUrl }).returning();
         return c.json(r, 201);
     }));
+    app.delete("/api/asistens/foto", requireAsisten(async c => {
+        const user = c.get("user")!;
+        await getDb(c.env).delete(fotoAsistens).where(eq(fotoAsistens.userId, user.id));
+        return c.json({ ok: true });
+    }));
+
+    app.post("/api/asistens/delete", requirePermission("manage-role")(async c => {
+        const body = await c.req.json<{ asistens?: string[] }>();
+        const identifiers = Array.isArray(body?.asistens) ? body.asistens.filter(Boolean) : [];
+
+        if (identifiers.length === 0) {
+            return c.json({ ok: true, deleted: 0 });
+        }
+
+        const db = getDb(c.env);
+        const rows = await db.select().from(users).where(eq(users.userType, "asisten"));
+        const matchedIds = rows
+            .filter((row) => identifiers.includes(row.kode ?? row.identifier ?? row.id))
+            .map((row) => row.id);
+
+        if (matchedIds.length > 0) {
+            await db.delete(users).where(inArray(users.id, matchedIds));
+        }
+
+        return c.json({ ok: true, deleted: matchedIds.length });
+    }));
 
     // Feedback
     app.get("/api/feedback", requirePermission("see-pelanggaran")(async c => {
         const db = getDb(c.env);
         return c.json(await db.select().from(feedback));
     }));
-    app.post("/api/feedback", requireAsisten(async c => {
+    app.post("/api/feedback", requirePraktikan(async c => {
         const user = c.get("user")!;
-        const body = await c.req.json();
-        const [r] = await getDb(c.env).insert(feedback).values({ ...body, asistenId: user.id }).returning();
+        const body = await c.req.json<{
+            asisten_id?: string;
+            asistenId?: string;
+            kelas_id?: string;
+            kelasId?: string;
+            message?: string;
+            pesan?: string;
+            laporan?: string;
+        }>();
+
+        const asistenId = body.asisten_id ?? body.asistenId;
+        const kelasId = user.kelasId ?? body.kelas_id ?? body.kelasId;
+        const pesan = body.pesan ?? body.message ?? body.laporan ?? "";
+
+        if (!asistenId || !kelasId || !pesan.trim()) {
+            return c.json({ error: "asisten_id, kelas_id, dan pesan wajib diisi" }, 400);
+        }
+
+        const [r] = await getDb(c.env).insert(feedback).values({
+            asistenId,
+            praktikanId: user.id,
+            kelasId,
+            pesan: pesan.trim(),
+        }).returning();
         return c.json(r, 201);
     }));
     app.patch("/api/feedback/:id/read", requireAsisten(async c => {

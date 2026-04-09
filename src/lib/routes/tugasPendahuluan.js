@@ -1,6 +1,6 @@
 import { createIndexDescriptor, makeRoute } from "./utils.js";
 
-const BASE_PATH = "/api-v1/tugas-pendahuluan";
+const BASE_PATH = "/api/tugas-pendahuluan";
 
 export const index = createIndexDescriptor(BASE_PATH);
 

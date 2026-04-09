@@ -1,13 +1,13 @@
 import { makeRoute } from "./utils.js";
 
-const BASE_PATH = "/api-v1/asisten";
+const BASE_PATH = "/api/asistens";
 
-export const update = makeRoute("put", BASE_PATH);
+export const update = makeRoute("patch", (asistenId) => `${BASE_PATH}/${asistenId}`);
 
-export const updatePp = makeRoute("post", "/api-v1/profilePic");
+export const updatePp = makeRoute("post", "/api/asistens/foto");
 
-export const destroyPp = makeRoute("delete", "/api-v1/profilePic");
+export const destroyPp = makeRoute("delete", "/api/asistens/foto");
 
-export const updatePassword = makeRoute("patch", `${BASE_PATH}/password`);
+export const updatePassword = makeRoute("post", "/api/auth/change-password");
 
 export const destroy = makeRoute("post", `${BASE_PATH}/delete`);

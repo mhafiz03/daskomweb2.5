@@ -1,14 +1,14 @@
 import { ensureId, makeRoute } from "./utils.js";
 
-const BASE_PATH = "/api-v1/soal-tk";
+const BASE_PATH = "/api/soal/tk";
 
-export const store = makeRoute("post", (modulId) => `${BASE_PATH}/${ensureId(modulId, "modul id")}`);
+export const store = makeRoute("post", BASE_PATH);
 
-export const update = makeRoute("put", (soalId) => `${BASE_PATH}/${ensureId(soalId, "soal id")}`);
+export const update = makeRoute("patch", (soalId) => `${BASE_PATH}/${ensureId(soalId, "soal id")}`);
 
 export const destroy = makeRoute("delete", (soalId) => `${BASE_PATH}/${ensureId(soalId, "soal id")}`);
 
 export const analysis = makeRoute(
 	"get",
-	(modulId) => `${BASE_PATH}/${ensureId(modulId, "modul id")}/analysis`,
+	(modulId) => `${BASE_PATH}/analysis/${ensureId(modulId, "modul id")}`,
 );

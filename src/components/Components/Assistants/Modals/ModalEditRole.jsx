@@ -22,7 +22,7 @@ export default function ModalEditRole({ onClose, asistenId }) {
     });
 
     const handleRoleChange = (event) => {
-        setSelectedRole(Number(event.target.value)); // Convert value to number
+        setSelectedRole(String(event.target.value));
     };
 
     const handleSave = (e) => {
@@ -33,8 +33,14 @@ export default function ModalEditRole({ onClose, asistenId }) {
             return;
         }
 
+        const selectedRoleName = roles.find((role) => String(role.id) === String(selectedRole))?.name ?? null;
+        if (!selectedRoleName) {
+            setErrorMessage("Role tidak valid.");
+            return;
+        }
+
         submit(updateRole(asistenId), {
-            data: { role_id: selectedRole },
+            data: { role: selectedRoleName },
             preserveScroll: true,
             onSuccess: () => {
                 toast.success("Role berhasil diperbarui.");
@@ -69,7 +75,7 @@ export default function ModalEditRole({ onClose, asistenId }) {
                             roles.map((role) => (
                                 <label
                                     key={role.id}
-                                    className={`flex cursor-pointer items-center gap-3 rounded-depth-md border px-3 py-2 text-sm transition ${selectedRole === role.id
+                                    className={`flex cursor-pointer items-center gap-3 rounded-depth-md border px-3 py-2 text-sm transition ${String(selectedRole) === String(role.id)
                                             ? "border-[var(--depth-color-primary)] bg-depth-interactive shadow-depth-md"
                                             : "border-depth bg-depth-card shadow-depth-sm hover:border-[var(--depth-color-primary)]"
                                         }`}
@@ -78,7 +84,7 @@ export default function ModalEditRole({ onClose, asistenId }) {
                                         type="radio"
                                         name="role_id"
                                         value={role.id}
-                                        checked={selectedRole === role.id}
+                                        checked={String(selectedRole) === String(role.id)}
                                         onChange={handleRoleChange}
                                         className="h-4 w-4 rounded border-depth text-[var(--depth-color-primary)] focus:ring-[var(--depth-color-primary)]"
                                     />

@@ -164,10 +164,9 @@ export default function ContentPraktikum() {
             return null;
         }
 
-        const modulId = Number(selectedModul);
         return (
             praktikumByClass.find(
-                (item) => Number(item?.modul_id) === modulId && (item?.dk ?? DK_OPTIONS[0]) === selectedDk,
+                (item) => String(item?.modul_id) === String(selectedModul) && (item?.dk ?? DK_OPTIONS[0]) === selectedDk,
             ) ?? null
         );
     }, [praktikumByClass, selectedModul, selectedDk]);
@@ -176,7 +175,7 @@ export default function ContentPraktikum() {
         const map = new Map();
         asistens.forEach((item) => {
             if (item?.id != null) {
-                map.set(Number(item.id), item);
+                map.set(String(item.id), item);
             }
         });
         return map;
@@ -210,9 +209,8 @@ export default function ContentPraktikum() {
             return null;
         }
 
-        const kelasId = Number(selectedKelas);
         return (
-            jadwalData.find((item) => Number(item?.id ?? item?.kelas_id ?? item?.kelasId) === kelasId) ??
+            jadwalData.find((item) => String(item?.id ?? item?.kelas_id ?? item?.kelasId) === String(selectedKelas)) ??
             jadwalData.find((item) => (item?.kelas ?? "").toString() === selectedKelasData?.kelas) ??
             null
         );
@@ -1475,7 +1473,7 @@ export default function ContentPraktikum() {
                                     isAsistenExpanded && (
                                         <div className="flex gap-2 overflow-x-auto pb-2">
                                             {asistenJagaList.map((item, idx) => {
-                                                const asistenDetail = item?.asisten ?? asistenMap.get(Number(item?.asisten_id));
+                                                const asistenDetail = item?.asisten ?? asistenMap.get(String(item?.asisten_id));
                                                 const key = item?.id ?? `${item?.asisten_id ?? asistenDetail?.id ?? "asisten"}-${idx}`;
 
                                                 return (

@@ -7,45 +7,7 @@ import { getDb } from "../utils";
 import { users, sessions } from "../db";
 import { requireSession } from "../middleware/session";
 import type { AppBindings } from "../types";
-
-// Asisten permission map by role
-const ASISTEN_PERMISSIONS: Record<string, string[]> = {
-    KORDAS: [
-        "manage-role", "manage-praktikum", "laporan-praktikum", "manage-plot",
-        "manage-pelanggaran", "manage-modul", "manage-soal", "unlock-jawaban",
-        "tugas-pendahuluan", "see-pelanggaran", "lms-configuration", "manage-profile",
-        "see-praktikum", "see-history", "see-soal", "nilai-praktikan", "see-plot",
-        "ranking-praktikan", "see-polling", "set-praktikan", "reset-praktikan",
-        "check-tugas-pendahuluan", "change-password", "praktikan-regist",
-        "tp-configuration", "logout",
-    ],
-    WAKORDAS: [
-        "manage-praktikum", "laporan-praktikum", "manage-modul", "manage-soal",
-        "unlock-jawaban", "tugas-pendahuluan", "manage-profile", "see-praktikum",
-        "see-history", "see-soal", "nilai-praktikan", "see-plot", "ranking-praktikan",
-        "see-polling", "set-praktikan", "check-tugas-pendahuluan", "change-password",
-        "tp-configuration", "logout",
-    ],
-    SOFTWARE: [
-        "manage-modul", "manage-soal", "manage-profile", "see-praktikum",
-        "see-history", "see-soal", "nilai-praktikan", "see-plot", "ranking-praktikan",
-        "see-polling", "check-tugas-pendahuluan", "change-password", "logout",
-    ],
-    HARDWARE: [
-        "manage-profile", "see-praktikum", "see-history", "see-soal",
-        "nilai-praktikan", "ranking-praktikan", "see-polling", "change-password", "logout",
-    ],
-    ASLAB: [
-        "manage-profile", "see-praktikum", "see-soal", "nilai-praktikan",
-        "ranking-praktikan", "change-password", "logout",
-    ],
-};
-
-const PRAKTIKAN_PERMISSIONS = [
-    "lihat-profile", "lihat-nilai", "lihat-modul", "lihat-asisten",
-    "praktikum-lms", "lihat-leaderboard", "isi-polling", "ganti-password",
-    "logout-praktikan",
-];
+import { PRAKTIKAN_PERMISSIONS, normalizeRoleName, resolveRoleDefinition } from "../lib/roles";
 
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
@@ -222,19 +184,23 @@ export function registerAuthRoutes(app: Hono<AppBindings>) {
             instagram?: string;
         }>();
 
-        const rolePerms = ASISTEN_PERMISSIONS[body.asistenRole] ?? ASISTEN_PERMISSIONS["ASLAB"]!;
         const salt = generateSalt();
         const passwordHash = hashPassword(body.password, salt);
 
         const db = getDb(c.env);
+        const roleDefinition = await resolveRoleDefinition(db, body.asistenRole);
+        if (!roleDefinition) {
+            return c.json({ error: "Role tidak valid" }, 400);
+        }
+
         const [created] = await db.insert(users).values({
             identifier: body.kode,
             passwordHash,
             userType: "asisten",
-            permissions: JSON.stringify(rolePerms),
+            permissions: JSON.stringify(roleDefinition.permissions),
             name: body.nama,
             kode: body.kode,
-            asistenRole: body.asistenRole,
+            asistenRole: roleDefinition.name,
             deskripsi: body.deskripsi,
             nomorTelepon: body.nomorTelepon,
             idLine: body.idLine,
@@ -253,12 +219,18 @@ export function registerAuthRoutes(app: Hono<AppBindings>) {
             return c.json({ error: "Forbidden" }, 403);
         }
 
-        const { role } = await c.req.json<{ role: string }>();
-        const rolePerms = ASISTEN_PERMISSIONS[role] ?? ASISTEN_PERMISSIONS["ASLAB"]!;
-
         const db = getDb(c.env);
+        const { role } = await c.req.json<{ role: string }>();
+        const roleDefinition = await resolveRoleDefinition(db, role);
+        if (!roleDefinition) {
+            return c.json({ error: "Role tidak valid" }, 400);
+        }
+
         await db.update(users)
-            .set({ asistenRole: role, permissions: JSON.stringify(rolePerms) })
+            .set({
+                asistenRole: normalizeRoleName(roleDefinition.name),
+                permissions: JSON.stringify(roleDefinition.permissions),
+            })
             .where(eq(users.id, c.req.param("id")));
 
         return c.json({ ok: true });

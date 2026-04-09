@@ -11,27 +11,40 @@ import {
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { useModulesQuery } from '@/hooks/useModulesQuery';
 
 const ScoreChart = () => {
+    const { data: modules = [] } = useModulesQuery();
     const nilaiQuery = useQuery({
-        queryKey: ['nilai'],
+        queryKey: ['nilai', 'my'],
         queryFn: async () => {
-            const { data } = await api.get('/api-v1/nilai');
+            const { data } = await api.get('/api/nilai/my');
 
-            if (!Array.isArray(data?.nilai)) {
+            const rows = Array.isArray(data?.nilai)
+                ? data.nilai
+                : Array.isArray(data?.data)
+                    ? data.data
+                    : Array.isArray(data)
+                        ? data
+                        : [];
+
+            if (!Array.isArray(rows)) {
                 return [];
             }
 
-            return data.nilai.map((item) => {
+            return rows.map((item) => {
                 const createdAt = item.created_at ? new Date(item.created_at) : null;
+                const moduleMeta = modules.find(
+                    (module) => String(module?.idM ?? module?.id) === String(item.modul_id ?? item.modulId)
+                );
 
                 return {
                     id: item.id ?? `${item.modul_id}-${item.praktikan_id}`,
-                    modulId: item.modul_id,
+                    modulId: item.modul_id ?? item.modulId,
                     tanggal: createdAt && !Number.isNaN(createdAt.getTime())
                         ? createdAt.toLocaleDateString('id-ID')
                         : '-',
-                    modul: item.modul?.judul ?? `Modul ${item.modul_id}`,
+                    modul: item.modul?.judul ?? moduleMeta?.judul ?? moduleMeta?.name ?? `Modul ${item.modul_id ?? item.modulId}`,
                     scores: {
                         tp: item.tp,
                         ta: item.ta,
@@ -48,6 +61,7 @@ const ScoreChart = () => {
             });
         },
         refetchOnWindowFocus: false,
+        enabled: modules.length > 0,
     });
 
     const scores = useMemo(() => nilaiQuery.data ?? [], [nilaiQuery.data]);

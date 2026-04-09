@@ -21,6 +21,7 @@ const fetchAsistens = async () => {
             nomor_telepon: assistant?.nomor_telepon ?? assistant?.nomorTelepon ?? "",
             id_line: assistant?.id_line ?? assistant?.idLine ?? "",
             foto: assistant?.foto ?? assistant?.profilePicture ?? null,
+            role: assistant?.role ?? assistant?.asistenRole ?? assistant?.roles?.[0]?.name ?? "",
         }));
     }
 

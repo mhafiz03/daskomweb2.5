@@ -1,11 +1,14 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import { submit } from "@/lib/http";
 import { store as storeRole } from "@/lib/routes/role";
+import { ROLES_QUERY_KEY } from "@/hooks/useRolesQuery";
 import { ModalOverlay } from "@/Components/Common/ModalPortal";
 import ModalCloseButton from "@/Components/Common/ModalCloseButton";
 
 export default function ButtonAddRole({ onClose, defaultChecked = ['asisten'] }) {
+    const queryClient = useQueryClient();
     const [roleName, setRoleName] = useState("");
     const [checkedPermissions, setCheckedPermissions] = useState(defaultChecked);
     const [errorMessage, setErrorMessage] = useState("");
@@ -43,12 +46,13 @@ export default function ButtonAddRole({ onClose, defaultChecked = ['asisten'] })
                 },
                 onSuccess: () => {
                     toast.success("Role berhasil ditambahkan.");
+                    queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEY });
                     setTimeout(() => {
                         onClose();
                     }, 1000);
                 },
                 onError: (error) => {
-                    toast.error("Terjadi kesalahan. Coba lagi.");
+                    toast.error(error?.error ?? "Terjadi kesalahan. Coba lagi.");
                 },
             });
         } catch (error) {

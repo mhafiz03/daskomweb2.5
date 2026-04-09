@@ -55,18 +55,145 @@ export function registerNilaiRoutes(app: Hono<AppBindings>) {
     // Leaderboard
     app.get("/api/nilai/leaderboard", requireSession(async c => {
         const db = getDb(c.env);
-        const { modulId } = c.req.query();
-        let q = db.select({
-            praktikanId: nilais.praktikanId,
-            avg: nilais.avg,
-            name: users.name,
-            nim: users.nim,
-        })
-        .from(nilais)
-        .innerJoin(users, eq(nilais.praktikanId, users.id))
-        .orderBy(desc(nilais.avg));
-        if (modulId) q = q.where(eq(nilais.modulId, modulId)) as typeof q;
-        return c.json(await q.limit(50));
+        const { modulId, limit, praktikanId } = c.req.query();
+        const kelasId = c.req.query("kelasId") ?? c.req.query("kelas_id");
+        const allNilaiRows = await db.select().from(nilais).orderBy(desc(nilais.updatedAt));
+        const userRows = await db.select().from(users);
+        const kelasRows = await db.select().from(kelas);
+        const modulRows = await db.select().from(moduls);
+
+        const userMap = new Map(userRows.map((row) => [row.id, row]));
+        const kelasMap = new Map(kelasRows.map((row) => [row.id, row]));
+        const modulMap = new Map(modulRows.map((row) => [row.id, row]));
+
+        let filteredRows = allNilaiRows;
+        if (modulId) {
+            filteredRows = filteredRows.filter((row) => row.modulId === modulId);
+        }
+        if (kelasId) {
+            filteredRows = filteredRows.filter((row) => row.kelasId === kelasId);
+        }
+
+        if (praktikanId) {
+            const praktikanRows = filteredRows.filter((row) => row.praktikanId === praktikanId);
+            if (praktikanRows.length === 0) {
+                return c.json({
+                    status: "error",
+                    message: "Nilai untuk praktikan ini tidak ditemukan.",
+                }, 404);
+            }
+
+            const praktikan = userMap.get(praktikanId);
+            const kelasRow = praktikan?.kelasId ? kelasMap.get(praktikan.kelasId) : null;
+            const modules = praktikanRows.map((row) => {
+                const modulRow = modulMap.get(row.modulId);
+                const asisten = row.asistenId ? userMap.get(row.asistenId) : null;
+                return {
+                    modul_id: row.modulId,
+                    modul_name: modulRow?.nama ?? null,
+                    average: row.avg,
+                    rating: row.rating,
+                    scores: {
+                        tp: row.tp,
+                        ta: row.ta,
+                        d1: row.d1,
+                        d2: row.d2,
+                        d3: row.d3,
+                        d4: row.d4,
+                        l1: row.l1,
+                        l2: row.l2,
+                    },
+                    asisten: asisten ? {
+                        id: asisten.id,
+                        nama: asisten.name,
+                        kode: asisten.kode,
+                    } : null,
+                    updated_at: row.updatedAt,
+                };
+            });
+
+            return c.json({
+                status: "success",
+                praktikan: {
+                    id: praktikan?.id ?? praktikanId,
+                    nama: praktikan?.name ?? "-",
+                    nim: praktikan?.nim ?? "-",
+                    kelas: kelasRow?.kelas ?? "-",
+                },
+                modules,
+                summary: {
+                    nilai_count: modules.length,
+                    rating_count: modules.filter((item) => item.rating !== null && item.rating !== undefined).length,
+                },
+            });
+        }
+
+        const grouped = new Map<string, {
+            praktikan_id: string;
+            nama: string;
+            nim: string;
+            kelas: string;
+            average_nilai: number;
+            average_rating: number | null;
+            nilai_count: number;
+            rating_count: number;
+            last_submitted_at: Date | null;
+        }>();
+
+        for (const row of filteredRows) {
+            const praktikan = userMap.get(row.praktikanId);
+            if (!praktikan) continue;
+            const kelasRow = kelasMap.get(praktikan.kelasId ?? row.kelasId);
+            const current = grouped.get(row.praktikanId) ?? {
+                praktikan_id: row.praktikanId,
+                nama: praktikan.name,
+                nim: praktikan.nim ?? "-",
+                kelas: kelasRow?.kelas ?? "-",
+                average_nilai: 0,
+                average_rating: null,
+                nilai_count: 0,
+                rating_count: 0,
+                last_submitted_at: null,
+            };
+
+            current.average_nilai += row.avg;
+            current.nilai_count += 1;
+            if (typeof row.rating === "number") {
+                current.average_rating = (current.average_rating ?? 0) + row.rating;
+                current.rating_count += 1;
+            }
+            if (!current.last_submitted_at || row.updatedAt > current.last_submitted_at) {
+                current.last_submitted_at = row.updatedAt;
+            }
+            grouped.set(row.praktikanId, current);
+        }
+
+        let leaderboard = Array.from(grouped.values())
+            .filter((item) => item.nilai_count > 0)
+            .map((item) => ({
+                ...item,
+                average_nilai: Number((item.average_nilai / item.nilai_count).toFixed(2)),
+                average_rating: item.rating_count > 0 && item.average_rating !== null
+                    ? Number((item.average_rating / item.rating_count).toFixed(2))
+                    : null,
+            }))
+            .sort((a, b) =>
+                (b.average_nilai - a.average_nilai) ||
+                ((b.average_rating ?? -1) - (a.average_rating ?? -1)) ||
+                (b.rating_count - a.rating_count) ||
+                a.nama.localeCompare(b.nama),
+            );
+
+        const parsedLimit = Number.parseInt(String(limit ?? ""), 10);
+        if (Number.isFinite(parsedLimit) && parsedLimit > 0) {
+            leaderboard = leaderboard.slice(0, parsedLimit);
+        }
+
+        return c.json({
+            status: "success",
+            leaderboard,
+            message: "Leaderboard retrieved successfully.",
+        });
     }));
 
     // Complaints

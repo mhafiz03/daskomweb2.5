@@ -1,9 +1,9 @@
 import { createIndexDescriptor, ensureId, makeRoute } from "./utils.js";
 
-const BASE_PATH = "/api-v1/roles";
+const BASE_PATH = "/api/auth/asisten";
 
-export const index = createIndexDescriptor(BASE_PATH);
+export const index = createIndexDescriptor("/api/roles");
 
-export const store = makeRoute("post", BASE_PATH);
+export const store = makeRoute("post", "/api/roles");
 
-export const update = makeRoute("put", (roleId) => `${BASE_PATH}/${ensureId(roleId, "role id")}`);
+export const update = makeRoute("patch", (asistenId) => `${BASE_PATH}/${ensureId(asistenId, "asisten id")}/role`);

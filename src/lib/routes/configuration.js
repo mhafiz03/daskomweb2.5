@@ -1,6 +1,6 @@
 import { createIndexDescriptor, makeRoute } from "./utils.js";
 
-const BASE_PATH = "/api-v1/config";
+const BASE_PATH = "/api/config";
 
 export const index = createIndexDescriptor(BASE_PATH);
 

@@ -14,6 +14,7 @@
     "db:seed:demo": "python3 scripts/seed-demo-users.py",
     "db:migrate:dev": "wrangler d1 migrations apply DB --local",
     "db:migrate:prod": "wrangler d1 migrations apply DB --remote",
+    "db:bootstrap:local": "bun run db:migrate:dev && bun run db:seed:demo",
     "db:import:local": "node scripts/import-d1-local.mjs",
     "db:studio:dev": "drizzle-kit studio",
     "db:studio:prod": "NODE_ENV=production drizzle-kit studio",

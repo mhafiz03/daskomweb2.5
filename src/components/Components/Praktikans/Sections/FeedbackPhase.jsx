@@ -225,15 +225,16 @@ export default function FeedbackPhase({
 
         try {
             setIsSubmitting(true);
-            await api.post("/api-v1/laporan-praktikan", {
+            await api.post("/api/feedback", {
                 praktikan_id: praktikanId,
-                modul_id: Number(normalizedModulId),
+                modul_id: normalizedModulId,
                 laporan: trimmedFeedback,
                 pesan: trimmedFeedback,
                 rating: ratingPraktikum || null,
                 rating_praktikum: ratingPraktikum || null,
                 rating_asisten: ratingAsisten || null,
-                asisten_id: selectedAssistantId ? Number(selectedAssistantId) : null,
+                asisten_id: selectedAssistantId,
+                kelas_id: praktikanData?.kelas_id ?? praktikanData?.kelasId ?? null,
             });
 
             toast.success("Feedback berhasil dikirim. Terima kasih!");

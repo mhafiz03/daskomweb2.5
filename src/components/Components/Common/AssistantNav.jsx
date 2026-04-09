@@ -8,7 +8,7 @@ import ModalOpenKJ from "../Assistants/Modals/ModalOpenKJ";
 import ModalActiveTP from "../Assistants/Modals/ModalActiveTP";
 
 import { logout as logoutAssistantSession } from "@/lib/auth";
-import { updatePassword as updateAssistantPassword } from "@/lib/routes/asisten";
+import { api } from "@/lib/api";
 
 import profileIcon from "../../../assets/nav/Icon-Profile.svg";
 import praktikumIcon from "../../../assets/nav/Icon-Praktikum.svg";
@@ -173,6 +173,12 @@ const genericHamburgerLine = "h-1 w-6 my-1 rounded-full bg-[var(--depth-text-pri
 export default function AssisstantNav({ asisten, permission_name = [], roleName }) {
     const location = useLocation();
     const currentPath = location.pathname;
+    const updateAssistantPasswordAction = useCallback((values) => {
+        return api.post("/api/auth/change-password", {
+            currentPassword: values.current_password,
+            newPassword: values.password,
+        });
+    }, []);
 
     const getInitialCollapsed = useCallback(() => {
         if (typeof window === "undefined") {
@@ -411,7 +417,7 @@ export default function AssisstantNav({ asisten, permission_name = [], roleName 
             <ModalPassword
                 isOpen={isPasswordModalOpen}
                 onClose={() => setIsPasswordModalOpen(false)}
-                updatePasswordAction={updateAssistantPassword}
+                updatePasswordAction={updateAssistantPasswordAction}
                 userType="asisten"
             />
 
